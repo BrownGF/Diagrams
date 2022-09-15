@@ -155,3 +155,4 @@ await httpClient.SendPostAsync(urlsConfig.RabbitEmail, dataContent);
 เราจะเปลี่ยนแค่ urlsConfig.RabbitEmail อย่างเดียว
 ตัวอย่าง url ที่อยู่บน Dapr
 `http://<ingress-ip>/v1.0/publish/<pubsub-name>/<topic>`
+[อ้างอิง](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-publish-subscribe/)
