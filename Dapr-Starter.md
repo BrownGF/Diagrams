@@ -64,7 +64,7 @@ spec:
         imagePullPolicy: Always
 ```
 
-## เปลี่ยนให้ระบบยิงผ่าน Dapr
+## ตัวอย่างการเปลี่ยนให้ระบบยิงผ่าน Dapr
 แก้ configuration env ให้เป็นไปตาม Dapr
 
 
