@@ -155,9 +155,9 @@ await httpClient.SendPostAsync(urlsConfig.RabbitEmail, dataContent);
 เราจะเปลี่ยนแค่ urlsConfig.RabbitEmail อย่างเดียว
 ตัวอย่าง url ที่อยู่บน Dapr
 `http://<ingress-ip>/v1.0/publish/<pubsub-name>/<topic>`
-[อ้างอิง](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-publish-subscribe/)
+[Doc](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-publish-subscribe/)
 
-**การ track การเรียกใช้ของ pub/sub**
+#### การ track การเรียกใช้ของ pub/sub
 โดยปกติเราไม่สามารถ track การเรียกใช้ pub/sub ได้
 ต้องเปลี่ยนการส่งข้อมูลเป็น CloudEvent โดยเริ่มจากการแก้ให้การ subscribe รองรับ Content-Type `application/cloudevents+json` (เช่น subscribe จาก SDK)
 
@@ -171,4 +171,4 @@ datacontenttype (optional)
 
 ตัวอย่างการเรียกด้วย curl `curl -X POST http://localhost:3601/v1.0/publish/order-pub-sub/orders -H "Content-Type: application/cloudevents+json" -d '{"specversion" : "1.0", "type" : "com.dapr.cloudevent.sent", "source" : "testcloudeventspubsub", "subject" : "Cloud Events Test", "id" : "someCloudEventId", "time" : "2021-08-02T09:00:00Z", "datacontenttype" : "application/cloudevents+json", "data" : {"orderId": "100"}}'
 `
-
+[Doc](https://docs.dapr.io/developing-applications/building-blocks/pubsub/pubsub-cloudevents/)
