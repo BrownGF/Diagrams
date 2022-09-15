@@ -6,19 +6,19 @@
 -   Install  [kubectl](https://kubernetes.io/docs/tasks/tools/)
 -   Kubernetes cluster
 
-## Setup Infra
+# Setup Infra
 
-###  Setup Dapr บน Kubernetes
+##  Setup Dapr บน Kubernetes
 `dapr init -k`
 ติดตั้ง Dapr บน kubernetes โดยอ้างอิงตาม context ปัจจุบันของ kubectl
 
 จะมี Application ต่าง ๆ ของ Dapr อยู่ใน dapr-system namespace เกิดขึ้นมา
 
-### เปิดช่องทางให้ Dapr สามารถเชื่อมต่อได้จากด้านนอก
+## เปิดช่องทางให้ Dapr สามารถเชื่อมต่อได้จากด้านนอก
 ให้ภายนอกเชื่อมต่อเข้ามาได้ผ่าน Ingress
 https://carlos.mendible.com/2020/04/05/kubernetes-nginx-ingress-controller-with-dapr/
 
-### Pub/sub message broker
+## Pub/sub message broker
 Create State store component โดยใช้ redis
 ```yaml
 apiVersion: dapr.io/v1alpha1
@@ -42,7 +42,9 @@ spec:
 ```
 
 Create Pub/sub message broker component (ตัวอย่างคือ redis)
+
 ส่วน RabbitMQ ดู format ได้ตรงนี่: [Link](https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-rabbitmq/)
+
 อื่นๆ: [Link](https://docs.dapr.io/reference/components-reference/supported-pubsub/)
 ```yaml
 apiVersion: dapr.io/v1alpha1
@@ -65,9 +67,9 @@ spec:
   #   value: true 
 ```
 
-## Setup Application และ Example สำหรับ Gofive
+# Setup Application และ Example สำหรับ Gofive
 
-### ใส่ Sidecar Dapr ให้ Deployment
+## ใส่ Sidecar Dapr ให้ Deployment
 เพิ่ม annotation เข้าไปใน metadata
 ```yaml
 annotations:
@@ -110,24 +112,14 @@ spec:
         imagePullPolicy: Always
 ```
 
-### เปลี่ยนให้ระบบยิงผ่าน Dapr
-แก้ configuration env ให้เป็นไปตามที่ Dapr วางไว้
-
+## เปลี่ยนให้ระบบยิงผ่าน Dapr
+แก้ configuration env ให้เป็นไปตาม Dapr
 
 
 1. ตัวอย่างจาก  Venio.API/Controllers/UserController.cs ใน **UpdateOnboarding** function
 ```c#
-// เปลี่ยน UrlsConfig.GofiveCore ให้เป็นไปตาม Dapr endpoint
-
 string url =  configuration.GetSection("UrlsConfig")["GofiveCore"].ToString();
 url +=  "v1/Profiles/onboarding";
-
-/*
-ตาม url นี้ตอนแรกอาจเป็น
-https://gofiveCore.api.com/v1/Profiles/onboarding
-จะกลายเป็น
-https://<ingress ip>/v1.0/invoke/<app-id>/method/v1/Profiles/onboarding
-*/
 
 var request =  new RequestOnboard { UserId = identityUserId, StatusOnboard = status };
 
@@ -145,6 +137,16 @@ message.Content  =  new StringContent(postContent, Encoding.UTF8, "application/j
 using  var response = await httpClient.SendAsync(message);
 ```
 
+วิธีเปลี่ยนไปใช้ Dapr คือการเปลี่ยนแค่ค่า config ใน UrlsConfig.GofiveCore เป็น url endpoint การ invoke ของ Dapr
+
+ตัวอย่าง url ที่อยู่บน Dapr
+
+`https://<ingress ip>/v1.0/invoke/<app-id>/method/<method>`
+
+`https://<ingress ip>/v1.0/invoke/<app-id>/method/v1/Profiles/onboarding`
+
+ใน UrlsConfig.GofiveCore ก็เขียนเป็น `https://<ingress ip>/v1.0/invoke/<app-id>/` เป็นต้น
+
 2. ตัวอย่างจาก Venio.BLL/Services/NotificationEmailService.cs ใน **GenEmailTemplateAsync** function 
 ```c#
 var dataContent = new StringContent(JObject.FromObject(email).ToString(Newtonsoft.Json.Formatting.None), Encoding.UTF8, "application/json");
@@ -152,9 +154,11 @@ var httpClient = httpClientFactory.CreateClient("RabbitMailHttpClient");
 await httpClient.SendPostAsync(urlsConfig.RabbitEmail, dataContent);
 ```
 
-เราจะเปลี่ยนแค่ค่า config ใน urlsConfig.RabbitEmail อย่างเดียว
+วิธีเปลี่ยนไปใช้ Dapr คือการเปลี่ยนแค่ค่า config ใน urlsConfig.RabbitEmail เป็น url endpoint การ publish ของ Dapr
 
 ตัวอย่าง url ที่อยู่บน Dapr
 `http://<ingress-ip>/v1.0/publish/<pubsub-name>/<topic>`
+
+ใน urlsConfig.RabbitEmail ก็เขียนเป็น `https://<ingress ip>/v1.0/publish/myrabbitmq/sendemail` เป็นต้น
 
 [Doc](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-publish-subscribe/)
