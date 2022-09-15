@@ -1,3 +1,4 @@
+
 # How to use Dapr
 [Official Doc](https://docs.dapr.io/operations/hosting/kubernetes/kubernetes-deploy/)
 ## Prerequisites
@@ -17,55 +18,6 @@
 ## เปิดช่องทางให้ Dapr สามารถเชื่อมต่อได้จากด้านนอก
 ให้ภายนอกเชื่อมต่อเข้ามาได้ผ่าน Ingress
 https://carlos.mendible.com/2020/04/05/kubernetes-nginx-ingress-controller-with-dapr/
-
-## Pub/sub message broker
-Create State store component โดยใช้ redis
-```yaml
-apiVersion: dapr.io/v1alpha1
-kind: Component
-metadata:
-  name: statestore
-  namespace: default
-spec:
-  type: state.redis
-  version: v1
-  metadata:
-  - name: redisHost
-    value: <REPLACE WITH HOSTNAME>
-  - name: redisPassword
-    secretKeyRef: # <REPLACE WITH YOUR SECRET>
-      name: redis
-      key: redis-password
-  # uncomment below for connecting to redis cache instances over TLS (ex - Azure Redis Cache)
-  # - name: enableTLS
-  #   value: true 
-```
-
-Create Pub/sub message broker component (ตัวอย่างคือ redis)
-
-ส่วน RabbitMQ ดู format ได้ตรงนี่: [Link](https://docs.dapr.io/reference/components-reference/supported-pubsub/setup-rabbitmq/)
-
-อื่นๆ: [Link](https://docs.dapr.io/reference/components-reference/supported-pubsub/)
-```yaml
-apiVersion: dapr.io/v1alpha1
-kind: Component
-metadata:
-  name: pubsub # เอาไว้อ้างอิง pubsub name
-  namespace: default
-spec:
-  type: pubsub.redis
-  version: v1
-  metadata:
-  - name: redisHost
-    value: <REPLACE WITH HOSTNAME>
-  - name: redisPassword
-    secretKeyRef: # <REPLACE WITH YOUR SECRET>
-      name: redis
-      key: redis-password
- # uncomment below for connecting to redis cache instances over TLS (ex - Azure Redis Cache)
-  # - name: enableTLS
-  #   value: true 
-```
 
 # Setup Application และ Example สำหรับ Gofive
 
@@ -116,49 +68,26 @@ spec:
 แก้ configuration env ให้เป็นไปตาม Dapr
 
 
-1. ตัวอย่างจาก  Venio.API/Controllers/UserController.cs ใน **UpdateOnboarding** function
+ตัวอย่างจาก 
+Venio.BLL\Services\ActivityService.cs ใน **FindDistance** function
 ```c#
-string url =  configuration.GetSection("UrlsConfig")["GofiveCore"].ToString();
-url +=  "v1/Profiles/onboarding";
-
-var request =  new RequestOnboard { UserId = identityUserId, StatusOnboard = status };
-
-var postContent =  JsonConvert.SerializeObject(request);
-var httpClient =  clientFactory.CreateClient();
-
-using  var message =  new HttpRequestMessage();
-var token =  Request.Headers["Authorization"].ToString()[7..];
-
-message.Headers.Authorization  =  new AuthenticationHeaderValue("Bearer", token);
-message.Method  =  HttpMethod.Post;
-message.RequestUri  =  new Uri(url);
-message.Content  =  new StringContent(postContent, Encoding.UTF8, "application/json");
-
-using  var response = await httpClient.SendAsync(message);
+var url =  $"{urlsConfig.LocationService}{UrlsConfig.LocationOperations.DistanceMatrix(startlat, startlong, endlat, endlong)}";
+using var response = await  httpClient.SendGetAsync(url);
+string data = await response.Content.ReadAsStringAsync();
 ```
 
-วิธีเปลี่ยนไปใช้ Dapr คือการเปลี่ยนแค่ค่า config ใน UrlsConfig.GofiveCore เป็น url endpoint การ invoke ของ Dapr
+เทียบตาม config ตอนนี้ก็จะเป็น
+`https://veniouat.southeastasia.cloudapp.azure.com/api/location/places/distance-matrix?origin={startlat},{startlong}&destination={endlat},{endlong}`
+
+### วิธีเปลี่ยนไปใช้ Dapr คือการเปลี่ยนค่า config ให้ตรงกับ endpoint ของ Dapr
 
 ตัวอย่าง url ที่อยู่บน Dapr
-
 `https://<ingress ip>/v1.0/invoke/<app-id>/method/<method>`
 
-`https://<ingress ip>/v1.0/invoke/<app-id>/method/v1/Profiles/onboarding`
+`https://<ingress ip>/v1.0/invoke/<app-id>/method/location/places/distance-matrix?origin={startlat},{startlong}&destination={endlat},{endlong}`
 
-ใน UrlsConfig.GofiveCore ก็เขียนเป็น `https://<ingress ip>/v1.0/invoke/<app-id>/` เป็นต้น
+### แก้ urlsConfig
+urlsConfig.LocationService จาก `https://veniouat.southeastasia.cloudapp.azure.com/api/location/`
+ ก็เขียนเป็น `https://<ingress-ip>/v1.0/invoke/<app-id>/method/` เป็นต้น
 
-2. ตัวอย่างจาก Venio.BLL/Services/NotificationEmailService.cs ใน **GenEmailTemplateAsync** function 
-```c#
-var dataContent = new StringContent(JObject.FromObject(email).ToString(Newtonsoft.Json.Formatting.None), Encoding.UTF8, "application/json");
-var httpClient = httpClientFactory.CreateClient("RabbitMailHttpClient");
-await httpClient.SendPostAsync(urlsConfig.RabbitEmail, dataContent);
-```
-
-วิธีเปลี่ยนไปใช้ Dapr คือการเปลี่ยนแค่ค่า config ใน urlsConfig.RabbitEmail เป็น url endpoint การ publish ของ Dapr
-
-ตัวอย่าง url ที่อยู่บน Dapr
-`http://<ingress-ip>/v1.0/publish/<pubsub-name>/<topic>`
-
-ใน urlsConfig.RabbitEmail ก็เขียนเป็น `https://<ingress ip>/v1.0/publish/myrabbitmq/sendemail` เป็นต้น
-
-[Doc](https://docs.dapr.io/developing-applications/building-blocks/pubsub/howto-publish-subscribe/)
+และ UrlsConfig.LocationOperations.DistanceMatrix    ก็ไว้ตามเดิม
