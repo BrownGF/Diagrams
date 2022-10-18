@@ -1,94 +1,145 @@
 workspace {
 
     model {
-        companyEmployee = person "Company Employee" "An employee of the company"
-        Venio = softwareSystem "Venio" "managing all your company's relationships and interactions with customers and potential customers." {
-            venioAPI = container "Main API" "Legacy?" ".NET" {
-                accountController = component "Account Controller" "Manage user credential,." ".NET Rest Controller"
-                activityController = component "Activity Controller" "Duplicate with microserive?" ".NET Rest Controller" "Confuse"
-                activity2Controller = component "Activity2 Controller" "Connect with microserice" ".NET Rest Controller" "Confuse"
-                activity2Controller = component "Activity2 Controller" "Connect with microserice" ".NET Rest Controller" "Confuse"
-            }
-            activity = container "Activity API" "" ".NET"
-            announcement = container "Announcement API" "" ".NET"
-            contract = container "Contract API" "" ".NET"
-            customer = container "Customer API" "" ".NET"
-            expense = container "Expense API" "" ".NET"
-            identity = container "Identity API" "" ".NET"
-            notification = container "Notification API" "" ".NET"
-            product = container "Product API" "" ".NET"
-            quotation = container "Quotation API" "" ".NET"
-            salesOrder = container "SalesOrder API" "" ".NET"
-            report = container "Report API" "" ".NET"
-            webApplication = container "Web Application" "Allows employees to view and manage information regarding the veterinarians, the clients, and their pets." "Java and Spring"
-            database = container "Database" "Stores information regarding the veterinarians, the clients, and their pets." "Relational Database Schema"
+        user = person "User"
+        venio = softwareSystem "Venio System" {
+            main = container "Main API" "" "Microservice"
+            bff = container "Business Bff" "" "Microservice"
+            activity = container "Activity Service" "" "Microservice"
+            announcement = container "Announcement Service" "" "Microservice"
+            contract = container "Contract Service" "" "Microservice"
+            customer = container "Customer Service" "" "Microservice"
+            expense = container "Expense Service" "" "Microservice"
+            identity = container "Identity Service" "" "Microservice"
+            notification = container "Notification Service" "" "Microservice"
+            product = container "Product Service" "" "Microservice"
+            quotation = container "Quotation Service" "" "Microservice"
+            saleOrder = container "SaleOrder Service" "" "Microservice"
+            storage = container "Storage Service" "" "Microservice"
+            report = container "Report Service" "" "Microservice"
+            location = container "Location Service" "" "Microservice"
+            chat = container "Chat Service" "" "Microservice"
+        }
+        empeo = softwareSystem "empeo System" "" "empeo Tag" {
+            
+        }
+        core = softwareSystem "Core System" "" "empeo Tag" {
+            
+        }
+        rabbitmail = softwareSystem "Rabbit mail" {
+            
+        }
+        clientPortal = softwareSystem "Client Portal" {
+            
+        }
+        shortenURL = softwareSystem "Shorten URL" {
+            
         }
         
-        # relationships between people and software systems
-        companyEmployee -> Venio "Uses"
+        # Relation between systems
+        venio -> empeo "Using"
+        venio -> core "Using"
         
-        # relationships to/from containers
+        # Relation between inside of Venio
+        # main:
+        main -> identity "Using"
+        main -> storage "Using"
+        main -> chat "Using"
         
-        # relationships to/from components
-
-        # companyEmployee -> webApplication "Uses"
-        # webApplication -> database "Reads from and writes to" "JDBC"
+        # bff:
+        bff -> activity "Using"
+        bff -> main "Using"
+        bff -> customer "Using"
+        bff -> product "Using"
+        bff -> quotation "Using"
+        bff -> saleOrder "Using"
+        bff -> identity "Using"
+        
+        # activity:
+        activity -> empeo "Using"
+        activity -> chat "Using"
+        activity -> core "Using"
+        activity -> storage "Using"
+        activity -> identity "Using"
+        
+        # announcement:
+        announcement -> core "Using"
+        announcement -> main "Using"
+        
+        # contract:
+        contract -> identity "Using"
+        contract -> main "Using"
+        
+        # customer:
+        customer -> core "Using"
+        customer -> chat "Using"
+        customer -> identity "Using"
+        
+        # expense:
+        expense -> main "Using"
+        expense -> empeo "Using"
+        expense -> core "Using"
+        expense -> storage "Using"
+        expense -> identity "Using"
+        
+        # identity:
+        identity -> empeo "Using"
+        identity -> main "Using"
+        
+        # notification:
+        notification -> main "Using"
+        notification -> rabbitmail "Using"
+        notification -> empeo "Using"
+        notification -> core "Using"
+        
+        # product:
+        
+        # quotation:
+        quotation -> clientPortal "Using"
+        quotation -> main "Using"
+        quotation -> storage "Using"
+        quotation -> identity "Using"
+        
+        # saleOrder:
+        saleOrder -> identity "Using"
+        
+        # storage:
+        
+        # report:
+        report -> identity "Using"
+        
+        # location:
+        
+        # chat:
+        chat -> main "Using"
+        chat -> shortenURL "Using"
+        chat -> customer "Using"
+        chat -> identity "Using"
+        chat -> core "Using"
+        
+        # Relation between inside of Venio to other systems
+        main -> core
+        
     }
 
     views {
-        systemContext Venio {
+        systemContext venio {
             include *
-            autolayout
+            autolayout lr
         }
 
-        container Venio {
+        container venio {
             include *
+            autolayout lr
         }
-        
-        component venioAPI {
-            include *
-        }
+
+        theme default
         
         styles {
-            element "Component" {
-                background #438dd5
-                color #ffffff
+            element "empeo Tag" {
+                background #df643d
             }
-            element "Account Controller" {
-                color #000000
-            }
-            element "Confuse" {
-            background #327cc4
-                opacity 60
-            }
-            element "Software System" {
-                background #801515
-                shape RoundedBox
-            }
-            element "Financial Risk System" {
-                background #550000
-                color #ffffff
-            }
-            element "Future State" {
-                opacity 30
-            }
-            element "Person" {
-                background #d46a6a
-                shape Person
-            }
-            relationship "Relationship" {
-                dashed false
-            }
-            relationship "Asynchronous" {
-                dashed true
-            }
-            relationship "Alert" {
-                color #ff0000
-            }
-            relationship "Future State" {
-                opacity 30
-            }
-       }
+        }
     }
 
 }
