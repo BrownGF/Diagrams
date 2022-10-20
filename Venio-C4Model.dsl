@@ -26,13 +26,13 @@ workspace {
         core = softwareSystem "Core System" "" "empeo Tag" {
             
         }
-        rabbitmail = softwareSystem "Rabbit mail" {
+        rabbitmail = softwareSystem "Rabbit mail" "" "3rd party" {
             
         }
-        clientPortal = softwareSystem "Client Portal" {
+        clientPortal = softwareSystem "Client Portal" "" "3rd party" {
             
         }
-        shortenURL = softwareSystem "Shorten URL" {
+        shortenURL = softwareSystem "Shorten URL" "" "3rd party" {
             
         }
         
@@ -45,6 +45,7 @@ workspace {
         main -> identity "Using"
         main -> storage "Using"
         main -> chat "Using"
+        main -> main "Using by Venio.Services.Integrations"
         
         # bff:
         bff -> activity "Using"
@@ -138,6 +139,10 @@ workspace {
         styles {
             element "empeo Tag" {
                 background #df643d
+            }
+            element "3rd party" {
+                background #dddddd
+                color #000000
             }
         }
     }
